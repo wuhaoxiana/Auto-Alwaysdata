@@ -59,8 +59,8 @@ jobs:
         ACCOUNTS_JSON_DD: ${{ secrets.ACCOUNTS_JSON_DD }}
         # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
         AD_ONLY_DD: ${{ inputs.account }}
-        TG_BOT_TOKEN_DD: ${{ secrets.TG_BOT_TOKEN_DD }}
-        TG_CHAT_ID_DD: ${{ secrets.TG_CHAT_ID_DD }}
+        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       run: |
         python -u main_DD.py
 
