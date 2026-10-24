@@ -55,7 +55,7 @@ jobs:
         # 环境变量名统一带 _BB 后缀；secret 名建议也改成同样的 *_BB，
         # 没改之前会自动回落到旧名字（A || B 的写法），所以现在替换文件也不会断。
         AD_USERNAME_BB: ${{ secrets.AD_USERNAME_BB }}
-        AD_PASSWORD_BB: ${{ secrets.AD_PASSWORD_BB  }}
+        AD_PASSWORD_BB: ${{ secrets.AD_PASSWORD_BB }}
         ACCOUNTS_JSON_BB: ${{ secrets.ACCOUNTS_JSON_BB }}
         # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
         AD_ONLY_BB: ${{ inputs.account }}
