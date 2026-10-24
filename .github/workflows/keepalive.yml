@@ -2,9 +2,17 @@ name: AlwaysData Keepalive
 
 on:
   schedule:
-    # 每天 UTC 00:00 运行
+    # 每周二 UTC 07:50 运行（= 北京时间 15:50）
     - cron: '50 7 * * 2'
+
+  # 手动运行：可以指定只登录某一个账号
   workflow_dispatch:
+    inputs:
+      account:
+        description: '只登录哪个账号？（留空 = 全部；可填 序号 2 / 完整邮箱 / 邮箱前缀）'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   actions: write
@@ -32,17 +40,29 @@ jobs:
       run: |
         playwright install chromium --with-deps
 
+    - name: 显示本次范围
+      run: |
+        if [ -z "$ACCOUNT" ]; then
+          echo "本次：全部账号"
+        else
+          echo "本次：仅 [$ACCOUNT]"
+        fi
+      env:
+        ACCOUNT: ${{ inputs.account }}
+
     - name: Run Keepalive Script
       env:
         AD_USERNAME: ${{ secrets.AD_USERNAME }}
         AD_PASSWORD: ${{ secrets.AD_PASSWORD }}
         ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
+        # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
+        AD_ONLY: ${{ inputs.account }}
         TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       run: |
         python -u main.py
 
-    # 更新时间到time.txt,避免6个月未更新导致工作流暂停
+    # 更新时间到 time.txt，避免 6 个月未更新导致工作流被暂停
     - name: 🕒 更新时间
       run: |
         git config user.name "github-actions[bot]"
@@ -55,8 +75,11 @@ jobs:
           git commit -m "⏱️ Auto Update by Github Actions $(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M:%S')"
           git push origin main
         fi
-        
+
+    # 清理旧运行记录：只在定时任务里做。
+    # 手动单账号测试时不清，否则你刚点的那次以及之前的记录都会被删掉。
     - name: 🧹 清理旧的工作流运行记录
+      if: github.event_name == 'schedule'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
