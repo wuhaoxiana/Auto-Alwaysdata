@@ -3,7 +3,7 @@ name: AlwaysData Keepalive
 on:
   schedule:
     # 每天 UTC 00:00 运行
-    - cron: '5 0 * * 2'
+    - cron: '50 7 * * 2'
   workflow_dispatch:
 
 permissions:
