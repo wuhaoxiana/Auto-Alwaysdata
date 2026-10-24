@@ -3,7 +3,7 @@ name: AlwaysData Keepalive_CC
 on:
   schedule:
     # 每周二 UTC 07:50 运行（= 北京时间 15:50）
-    - cron: '25 10 * * 5'
+    - cron: '5 8 * * 5'
 
   # 手动运行：可以指定只登录某一个账号
   workflow_dispatch:
