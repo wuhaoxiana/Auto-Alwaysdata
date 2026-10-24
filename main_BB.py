@@ -36,7 +36,7 @@ AlwaysData 自动登录 / 保活（重写版）
     # 只跑其中一个（workflow_dispatch 的 account 输入就是传给它的）：
     export AD_ONLY_BB=2            # 序号（1 起）/ 完整邮箱 / 邮箱前缀；空或 all = 全部
     # TG 通知：
-    export TG_BOT_TOKEN_BB=xxx TG_CHAT_ID_BB=123
+    export TG_BOT_TOKEN=xxx TG_CHAT_ID=123
     # 可选：
     export ALLOW_CREDENTIALS_VIA_PROXY_BB=0   # 1 = 允许经 CroxyProxy 提交密码（有泄露风险）
     export STAY_LOGGED_IN_BB=1                # 1 = 勾选「保持登录 2 周」
@@ -114,8 +114,8 @@ def env_bool(name: str, default: bool) -> bool:
 class Config:
     def __init__(self) -> None:
         self.accounts = self._load_accounts()
-        self.tg_token = os.environ.get("TG_BOT_TOKEN_BB", "").strip()
-        self.tg_chat = os.environ.get("TG_CHAT_ID_BB", "").strip()
+        self.tg_token = os.environ.get("TG_BOT_TOKEN", "").strip()
+        self.tg_chat = os.environ.get("TG_CHAT_ID", "").strip()
         self.allow_proxy_creds = env_bool("ALLOW_CREDENTIALS_VIA_PROXY_BB", False)
         self.stay_logged_in = env_bool("STAY_LOGGED_IN_BB", True)
         self.headless = env_bool("HEADLESS_BB", True)
