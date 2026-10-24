@@ -59,8 +59,8 @@ jobs:
         ACCOUNTS_JSON_CC: ${{ secrets.ACCOUNTS_JSON_CC }}
         # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
         AD_ONLY_CC: ${{ inputs.account }}
-        TG_BOT_TOKEN_CC: ${{ secrets.TG_BOT_TOKEN_CC }}
-        TG_CHAT_ID_CC: ${{ secrets.TG_CHAT_ID_CC }}
+        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       run: |
         python -u main_CC.py
 
