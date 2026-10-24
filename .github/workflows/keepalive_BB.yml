@@ -1,0 +1,96 @@
+name: AlwaysData Keepalive
+
+on:
+  schedule:
+    # 每周二 UTC 07:50 运行（= 北京时间 15:50）
+    - cron: '50 7 * * 2'
+
+  # 手动运行：可以指定只登录某一个账号
+  workflow_dispatch:
+    inputs:
+      account:
+        description: '只登录哪个账号？（留空 = 全部；可填 序号 2 / 完整邮箱 / 邮箱前缀）'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium --with-deps
+
+    - name: 显示本次范围
+      run: |
+        if [ -z "$ACCOUNT" ]; then
+          echo "本次：全部账号"
+        else
+          echo "本次：仅 [$ACCOUNT]"
+        fi
+      env:
+        ACCOUNT: ${{ inputs.account }}
+
+    - name: Run Keepalive Script
+      env:
+        # 环境变量名统一带 _BB 后缀；secret 名建议也改成同样的 *_BB，
+        # 没改之前会自动回落到旧名字（A || B 的写法），所以现在替换文件也不会断。
+        AD_USERNAME_BB: ${{ secrets.AD_USERNAME_BB }}
+        AD_PASSWORD_BB: ${{ secrets.AD_PASSWORD_BB  }}
+        ACCOUNTS_JSON_BB: ${{ secrets.ACCOUNTS_JSON_BB }}
+        # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
+        AD_ONLY_BB: ${{ inputs.account }}
+        TG_BOT_TOKEN_BB: ${{ secrets.TG_BOT_TOKEN_BB }}
+        TG_CHAT_ID_BB: ${{ secrets.TG_CHAT_ID_BB }}
+      run: |
+        python -u main_BB.py
+
+    # 更新时间到 time.txt，避免 6 个月未更新导致工作流被暂停
+    - name: 🕒 更新时间
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        echo "$(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M:%S')" > time.txt
+        git add time.txt
+        if git diff --cached --quiet; then
+          echo "No need to commit"
+        else
+          git commit -m "⏱️ Auto Update by Github Actions $(TZ=Asia/Shanghai date +'%Y-%m-%d %H:%M:%S')"
+          git push origin main
+        fi
+
+    # 清理旧运行记录：只在定时任务里做。
+    # 手动单账号测试时不清，否则你刚点的那次以及之前的记录都会被删掉。
+    - name: 🧹 清理旧的工作流运行记录
+      if: github.event_name == 'schedule'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        runs=$(gh run list --workflow="${{ github.workflow }}" --limit=100 --json databaseId --jq '.[].databaseId')
+        count=0
+        for run_id in $runs; do
+          count=$((count + 1))
+          if [ $count -gt 1 ]; then
+            echo "删除运行记录: $run_id"
+            gh run delete $run_id || true
+          fi
+        done
