@@ -18,7 +18,7 @@ AlwaysData 自动登录 / 保活（重写版）
    的登录请求代转成功（错误密码能拿到站点原文报错），但密码必须经过他们的
    服务器，且会话 cookie 落在代理域名下 → 无法服务端复验、无法证明已登录。
    所以它只用于诊断「目标站点此刻是否可达」。确需强行走它，设
-   ALLOW_CREDENTIALS_VIA_PROXY_BB=1，结果会标注「未经服务端复验」。
+   ALLOW_CREDENTIALS_VIA_PROXY_DD=1，结果会标注「未经服务端复验」。
 5. 勾选「Rester connecté pendant 2 semaines」(name=alive)，让会话活 2 周，
    这才对保活有实际意义（原版只 page.reload()，等于什么都没做）。
 6. 去掉满地的 except: pass：所有异常都会写进日志并发到 TG。
@@ -29,20 +29,20 @@ AlwaysData 自动登录 / 保活（重写版）
 ================================
     pip install playwright requests && playwright install chromium
 
-    export AD_ACCOUNTS_BB='[{"username":"a@b.com","password":"xxx"}]'
-    #   （也认 ACCOUNTS_JSON_BB，即原 workflow 里的 secret 名字）
+    export AD_ACCOUNTS_DD='[{"username":"a@b.com","password":"xxx"}]'
+    #   （也认 ACCOUNTS_JSON_DD，即原 workflow 里的 secret 名字）
     # 或者用单账号：
-    export AD_USERNAME_BB=a@b.com AD_PASSWORD_BB=xxx
+    export AD_USERNAME_DD=a@b.com AD_PASSWORD_DD=xxx
     # 只跑其中一个（workflow_dispatch 的 account 输入就是传给它的）：
-    export AD_ONLY_BB=2            # 序号（1 起）/ 完整邮箱 / 邮箱前缀；空或 all = 全部
+    export AD_ONLY_DD=2            # 序号（1 起）/ 完整邮箱 / 邮箱前缀；空或 all = 全部
     # TG 通知：
-    export TG_BOT_TOKEN_BB=xxx TG_CHAT_ID_BB=123
+    export TG_BOT_TOKEN_DD=xxx TG_CHAT_ID_DD=123
     # 可选：
-    export ALLOW_CREDENTIALS_VIA_PROXY_BB=0   # 1 = 允许经 CroxyProxy 提交密码（有泄露风险）
-    export STAY_LOGGED_IN_BB=1                # 1 = 勾选「保持登录 2 周」
-    export HEADLESS_BB=1
-    export AD_TIMEOUT_BB=45                   # 登录后等待跳转的秒数
-    export SHOT_DIR_BB=./shots
+    export ALLOW_CREDENTIALS_VIA_PROXY_DD=0   # 1 = 允许经 CroxyProxy 提交密码（有泄露风险）
+    export STAY_LOGGED_IN_DD=1                # 1 = 勾选「保持登录 2 周」
+    export HEADLESS_DD=1
+    export AD_TIMEOUT_DD=45                   # 登录后等待跳转的秒数
+    export SHOT_DIR_DD=./shots
 
     python3 main.py
 
@@ -114,30 +114,30 @@ def env_bool(name: str, default: bool) -> bool:
 class Config:
     def __init__(self) -> None:
         self.accounts = self._load_accounts()
-        self.tg_token = os.environ.get("TG_BOT_TOKEN_BB", "").strip()
-        self.tg_chat = os.environ.get("TG_CHAT_ID_BB", "").strip()
-        self.allow_proxy_creds = env_bool("ALLOW_CREDENTIALS_VIA_PROXY_BB", False)
-        self.stay_logged_in = env_bool("STAY_LOGGED_IN_BB", True)
-        self.headless = env_bool("HEADLESS_BB", True)
-        self.timeout = env_int("AD_TIMEOUT_BB", 45)
-        self.shot_dir = os.environ.get("SHOT_DIR_BB", "shots")
-        self.probe_timeout = env_int("PROXY_PROBE_TIMEOUT_BB", 45)
+        self.tg_token = os.environ.get("TG_BOT_TOKEN_DD", "").strip()
+        self.tg_chat = os.environ.get("TG_CHAT_ID_DD", "").strip()
+        self.allow_proxy_creds = env_bool("ALLOW_CREDENTIALS_VIA_PROXY_DD", False)
+        self.stay_logged_in = env_bool("STAY_LOGGED_IN_DD", True)
+        self.headless = env_bool("HEADLESS_DD", True)
+        self.timeout = env_int("AD_TIMEOUT_DD", 45)
+        self.shot_dir = os.environ.get("SHOT_DIR_DD", "shots")
+        self.probe_timeout = env_int("PROXY_PROBE_TIMEOUT_DD", 45)
         # 可选：用系统自带 chromium（本地调试常见；CI 里保持空即可）
-        self.chrome_path = os.environ.get("CHROME_PATH_BB", "").strip()
+        self.chrome_path = os.environ.get("CHROME_PATH_DD", "").strip()
         # 手动只跑某个账号：序号(1 起) / 完整邮箱 / 邮箱前缀 / all
-        self.only = (os.environ.get("AD_ONLY_BB") or "").strip()
+        self.only = (os.environ.get("AD_ONLY_DD") or "").strip()
 
     @staticmethod
     def _load_accounts() -> list[dict[str, str]]:
-        # 兼容两种变量名：AD_ACCOUNTS_BB（本脚本）与 ACCOUNTS_JSON_BB（原 workflow）
-        raw = (os.environ.get("AD_ACCOUNTS_BB")
-               or os.environ.get("ACCOUNTS_JSON_BB")
+        # 兼容两种变量名：AD_ACCOUNTS_DD（本脚本）与 ACCOUNTS_JSON_DD（原 workflow）
+        raw = (os.environ.get("AD_ACCOUNTS_DD")
+               or os.environ.get("ACCOUNTS_JSON_DD")
                or "").strip()
         if raw:
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError as e:
-                raise SystemExit(f"AD_ACCOUNTS_BB / ACCOUNTS_JSON_BB 不是合法 JSON: {e}")
+                raise SystemExit(f"AD_ACCOUNTS_DD / ACCOUNTS_JSON_DD 不是合法 JSON: {e}")
             if isinstance(data, dict):
                 data = [data]
             out = []
@@ -147,8 +147,8 @@ class Config:
                 if u and p:
                     out.append({"username": u, "password": p})
             return out
-        u = os.environ.get("AD_USERNAME_BB", "").strip()
-        p = os.environ.get("AD_PASSWORD_BB", "")
+        u = os.environ.get("AD_USERNAME_DD", "").strip()
+        p = os.environ.get("AD_PASSWORD_DD", "")
         return [{"username": u, "password": p}] if u and p else []
 
 
@@ -164,7 +164,7 @@ def select_accounts(
     accounts: list[dict[str, str]], only: str
 ) -> tuple[list[dict[str, str]], str]:
     """
-    按 AD_ONLY_BB 挑选要跑的账号，返回 (选中的账号, 错误说明)。
+    按 AD_ONLY_DD 挑选要跑的账号，返回 (选中的账号, 错误说明)。
 
     支持：空/all/* → 全部；纯数字 → 1 起的序号；完整邮箱；邮箱前缀；子串。
     匹配到多个或一个都没有时返回错误，绝不"猜一个"跑。
@@ -437,7 +437,7 @@ class CroxyProxyProbe:
         https://51.158.204.82/login/?__cpo=<base64>），拿不到 admin.alwaysdata.com
         的 sessionid，因此**无法做服务端复验**，也就无法证明"已登录"；
       · 截图只是代理页面的截图，不代表账号状态。
-    所以默认不在这里提交凭据；确需启用见 ALLOW_CREDENTIALS_VIA_PROXY_BB。
+    所以默认不在这里提交凭据；确需启用见 ALLOW_CREDENTIALS_VIA_PROXY_DD。
     """
 
     name = "CroxyProxy"
@@ -680,12 +680,12 @@ class Runner:
                 f"⚠️ {masked} 未登录（诊断）\n"
                 f"直连失败: {reason}\n"
                 f"CroxyProxy 可达，但按策略**未提交凭据**：网页代理能看到明文密码。\n"
-                f"确需强行走它，设 ALLOW_CREDENTIALS_VIA_PROXY_BB=1",
+                f"确需强行走它，设 ALLOW_CREDENTIALS_VIA_PROXY_DD=1",
             )
             return False
 
         # 用户显式允许经代理提交（高风险，结果无法服务端复验）
-        self.log("⚠️ ALLOW_CREDENTIALS_VIA_PROXY_BB=1：经 CroxyProxy 提交凭据")
+        self.log("⚠️ ALLOW_CREDENTIALS_VIA_PROXY_DD=1：经 CroxyProxy 提交凭据")
         probe = CroxyProxyProbe(self.cfg.probe_timeout)
         try:
             frame = probe.open(page, LOGIN_URL)
@@ -742,8 +742,8 @@ def main() -> int:
     cfg = Config()
     if not cfg.accounts:
         print(
-            "没有账号。请设置 AD_ACCOUNTS_BB='[{\"username\":..,\"password\":..}]' "
-            "或 AD_USERNAME_BB / AD_PASSWORD_BB",
+            "没有账号。请设置 AD_ACCOUNTS_DD='[{\"username\":..,\"password\":..}]' "
+            "或 AD_USERNAME_DD / AD_PASSWORD_DD",
             file=sys.stderr,
         )
         return 2
