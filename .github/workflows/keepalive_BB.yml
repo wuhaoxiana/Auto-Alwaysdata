@@ -59,8 +59,8 @@ jobs:
         ACCOUNTS_JSON_BB: ${{ secrets.ACCOUNTS_JSON_BB }}
         # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
         AD_ONLY_BB: ${{ inputs.account }}
-        TG_BOT_TOKEN_BB: ${{ secrets.TG_BOT_TOKEN_BB }}
-        TG_CHAT_ID_BB: ${{ secrets.TG_CHAT_ID_BB }}
+        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       run: |
         python -u main_BB.py
 
