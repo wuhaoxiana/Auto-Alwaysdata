@@ -1,4 +1,4 @@
-name: AlwaysData Keepalive
+name: AlwaysData Keepalive_DD
 
 on:
   schedule:
@@ -52,17 +52,17 @@ jobs:
 
     - name: Run Keepalive Script
       env:
-        # 环境变量名统一带 _BB 后缀；secret 名建议也改成同样的 *_BB，
+        # 环境变量名统一带 _DD 后缀；secret 名建议也改成同样的 *_DD，
         # 没改之前会自动回落到旧名字（A || B 的写法），所以现在替换文件也不会断。
-        AD_USERNAME_BB: ${{ secrets.AD_USERNAME_BB }}
-        AD_PASSWORD_BB: ${{ secrets.AD_PASSWORD_BB  }}
-        ACCOUNTS_JSON_BB: ${{ secrets.ACCOUNTS_JSON_BB }}
+        AD_USERNAME_DD: ${{ secrets.AD_USERNAME_DD }}
+        AD_PASSWORD_DD: ${{ secrets.AD_PASSWORD_DD  }}
+        ACCOUNTS_JSON_DD: ${{ secrets.ACCOUNTS_JSON_DD }}
         # ↓ 手动运行时的账号筛选：序号 / 邮箱 / 邮箱前缀；空 = 全部
-        AD_ONLY_BB: ${{ inputs.account }}
-        TG_BOT_TOKEN_BB: ${{ secrets.TG_BOT_TOKEN_BB }}
-        TG_CHAT_ID_BB: ${{ secrets.TG_CHAT_ID_BB }}
+        AD_ONLY_DD: ${{ inputs.account }}
+        TG_BOT_TOKEN_DD: ${{ secrets.TG_BOT_TOKEN_DD }}
+        TG_CHAT_ID_DD: ${{ secrets.TG_CHAT_ID_DD }}
       run: |
-        python -u main_BB.py
+        python -u main_DD.py
 
     # 更新时间到 time.txt，避免 6 个月未更新导致工作流被暂停
     - name: 🕒 更新时间
